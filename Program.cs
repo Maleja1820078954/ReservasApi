@@ -16,58 +16,81 @@ namespace ReservasApi
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Configurar CORS
+            // =======================
+            // CORS
+            // =======================
             builder.Services.AddCors(options =>
             {
-                options.AddPolicy("AllowFrontend", builder =>
+                options.AddPolicy("AllowAll", policy =>
                 {
-                    builder.WithOrigins("http://localhost:5173", "http://localhost:5174") 
-                           .AllowAnyMethod()
-                           .AllowAnyHeader()
-                           .AllowCredentials();
+                    policy.AllowAnyOrigin()
+                          .AllowAnyMethod()
+                          .AllowAnyHeader();
                 });
             });
 
-            // Add services to the container.
+            // =======================
+            // DATABASE
+            // =======================
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection")
+                )
+            );
+
+            // =======================
+            // REPOSITORIES
+            // =======================
             builder.Services.AddScoped<IClientRepository, ClientRepository>();
             builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
             builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
             builder.Services.AddScoped<IUserRepository, UserRepository>();
-            // Servicios
+
+            // =======================
+            // SERVICES
+            // =======================
             builder.Services.AddScoped<PasswordService>();
             builder.Services.AddScoped<JwtService>();
 
-            //JWT
+            // =======================
+            // JWT AUTH
+            // =======================
             var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
 
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-               .AddJwtBearer(options =>
-               {
-                   options.TokenValidationParameters = new TokenValidationParameters
-                   {
-                       ValidateIssuer = true,
-                       ValidateAudience = true,
-                       ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                       ValidAudience = builder.Configuration["Jwt:Audience"],
-                       ValidateIssuerSigningKey = true,
-                       IssuerSigningKey = new SymmetricSecurityKey(key),
-                       ValidateLifetime = true
-                   };
-               }
-            );
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                        ValidAudience = builder.Configuration["Jwt:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(key)
+                    };
+                });
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+            // =======================
+            // CONTROLLERS + JSON
+            // =======================
+            builder.Services.AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.ReferenceHandler =
+                        System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+                });
+
+            // =======================
+            // SWAGGER + JWT
+            // =======================
             builder.Services.AddEndpointsApiExplorer();
-
-            //Swagger con JWT
             builder.Services.AddSwaggerGen(c =>
             {
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = "Autenticación JWT usando Bearer. Ej: Bearer {token}",
+                    Description = "JWT Authorization header usando Bearer. Ej: Bearer {token}",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,
@@ -77,37 +100,35 @@ namespace ReservasApi
 
                 c.AddSecurityRequirement(new OpenApiSecurityRequirement
                 {
-                   {
-                       new OpenApiSecurityScheme
-                       {
-                           Reference = new OpenApiReference
-                           {
-                               Type = ReferenceType.SecurityScheme,
-                               Id = "Bearer"
-                           }
-                       },
-                       Array.Empty<string>()
-                   }
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        Array.Empty<string>()
+                    }
                 });
             });
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
-            //if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
+            // =======================
+            // PIPELINE
+            // =======================
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseHttpsRedirection();
 
+            // CORS DEBE IR ANTES DE AUTH
+            app.UseCors("AllowAll");
+
             app.UseAuthentication();
             app.UseAuthorization();
-
-            // ANTES de app.MapControllers();
-            app.UseCors("AllowFrontend");
 
             app.MapControllers();
 

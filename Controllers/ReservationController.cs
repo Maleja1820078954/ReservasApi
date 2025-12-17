@@ -10,12 +10,12 @@ namespace ReservasApi.Controllers
     // Indica que esta clase es un controlador de API
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
-    public class ReservationsController : ControllerBase
+    [Authorize]
+    public class ReservationController : ControllerBase
     {
         private readonly IReservationRepository _repo;
 
-        public ReservationsController(IReservationRepository repo)
+        public ReservationController(IReservationRepository repo)
         {
             _repo = repo;
         }
@@ -29,7 +29,7 @@ namespace ReservasApi.Controllers
         }
 
         // GET: api/reservations/5
-        [HttpGet("{id}")]
+        [HttpGet("{id}", Name = "GetByIdAsyncReserva")]
         public async Task<IActionResult> GetById(int id)
         {
             var reservation = await _repo.GetByIdAsync(id);
@@ -59,7 +59,9 @@ namespace ReservasApi.Controllers
             };
 
             var created = await _repo.AddAsync(reservation);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            return CreatedAtRoute("GetByIdAsyncReserva",
+                 new { id = created.Id },
+                 created);
         }
 
         // PUT

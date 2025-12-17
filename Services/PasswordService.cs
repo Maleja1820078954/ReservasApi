@@ -9,7 +9,7 @@ namespace ReservasApi.Services
         // (por ejemplo una contraseña) para convertirlo en una cadena irreconocible.
         // Sirve para proteger contraseñas
 
-        // Convierte una contraseña a HASH usando SHA256
+        // Convierte una contraseña a HASH usando SHA256ac
         public string Hash(string password)
         {
             var sha = SHA256.Create();

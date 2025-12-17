@@ -15,7 +15,7 @@ namespace ReservasApi.Controllers
 
     // Protege todos los endpoints con JWT
     // Solo usuarios autenticados pueden acceder
-    //[Authorize]
+    [Authorize]
     public class ClientController : ControllerBase
     {
         // Repositorio para acceder a los datos de clientes

@@ -6,7 +6,7 @@
     {
         public int Id { get; set; }
         public DateTime Date { get; set; }
-        public string Status { get; set; } = "Pending";
+        public string Status { get; set; } = "Pendiente";
 
         // Foreign keys - Relación con Cliente
         public int ClientId { get; set; }

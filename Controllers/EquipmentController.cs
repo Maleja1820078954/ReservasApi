@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ReservasApi.Controllers
 {
     // Controllers: Son los puntos de entrada de la API. Reciben solicitudes HTTP:
-    /*[Authorize] */// ← PROTEGE TODAS LAS RUTAS
+    [Authorize] // ← PROTEGE TODAS LAS RUTAS
     [Route("api/[controller]")]
     [ApiController]
 

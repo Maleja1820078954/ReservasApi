@@ -9,7 +9,7 @@ namespace ReservasApi.Controllers
     // Controllers: Son los puntos de entrada de la API. Reciben solicitudes HTTP:
     [ApiController]
     [Route("api/[controller]")]
-    //[Authorize]
+    [Authorize]
     public class ServicesController : ControllerBase
     {
         private readonly IServiceRepository _repo;
